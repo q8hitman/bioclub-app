@@ -21,10 +21,12 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
     @Published var sharedDownload: SharedDownload?
     private var destinations: [ObjectIdentifier: URL] = [:]
     private var sharedDirectory: URL?
+    private var requestedURL: URL
     var language: AppLanguage
 
     init(url: URL, language: AppLanguage) {
         currentURL = url
+        requestedURL = url
         self.language = language
         let configuration = WKWebViewConfiguration()
         configuration.websiteDataStore = .default()
@@ -38,15 +40,17 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
         webView.load(URLRequest(url: url))
     }
     func retry() {
+        let retryFailedNavigation = failed
         failed = false
-        if webView.url == nil { webView.load(URLRequest(url: currentURL)) }
+        if retryFailedNavigation || webView.url == nil { webView.load(URLRequest(url: requestedURL)) }
         else { webView.reload() }
     }
     func goBack() { failed = false; webView.goBack() }
     func goForward() { failed = false; webView.goForward() }
     func openCurrentInBrowser() {
-        guard WebsiteURLPolicy.classify(currentURL) != .blocked else { return }
-        UIApplication.shared.open(currentURL)
+        let url = failed ? requestedURL : currentURL
+        guard WebsiteURLPolicy.classify(url) != .blocked else { return }
+        UIApplication.shared.open(url)
     }
     func confirmExternal(_ url: URL) {
         guard WebsiteURLPolicy.classify(url) == .externalPage else { return }
@@ -68,7 +72,8 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) { fail(error) }
     private func fail(_ error: Error) {
         if (error as NSError).code == NSURLErrorCancelled { return }
-        isLoading = false; failed = true; refreshNavigation()
+        isLoading = false; failed = true
+        canGoBack = webView.canGoBack; canGoForward = webView.canGoForward
     }
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { isLoading = false; failed = true }
 
@@ -76,6 +81,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
         guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
         switch WebsiteURLPolicy.classify(url) {
         case .internalPage:
+            if navigationAction.targetFrame?.isMainFrame != false && !navigationAction.shouldPerformDownload { requestedURL = url }
             decisionHandler(navigationAction.shouldPerformDownload ? .download : .allow)
         case .externalPage:
             if navigationAction.targetFrame?.isMainFrame == false && WebsiteURLPolicy.isAllowedEmbeddedFrame(url) {
