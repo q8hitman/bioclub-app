@@ -20,6 +20,8 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
     @Published var showActionError = false
     @Published var sharedDownload: SharedDownload?
     private var destinations: [ObjectIdentifier: URL] = [:]
+    /// Downloads that started from an official-site navigation or site blob export.
+    private var trustedDownloads: Set<ObjectIdentifier> = []
     private var sharedDirectory: URL?
     private var requestedURL: URL
     var language: AppLanguage
@@ -53,7 +55,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
         UIApplication.shared.open(url)
     }
     func confirmExternal(_ url: URL) {
-        guard WebsiteURLPolicy.classify(url) == .externalPage else { return }
+        guard WebsiteURLPolicy.classify(url) == .externalPage || WebsiteURLPolicy.contactTarget(url) != nil else { return }
         externalURL = nil
         UIApplication.shared.open(url)
     }
@@ -79,6 +81,18 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
         guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
+        let isMainFrame = navigationAction.targetFrame?.isMainFrame != false
+        // Site exports (planner/services) are blob: downloads created by biosci-ku.com.
+        if WebsiteURLPolicy.isSiteBlob(url) {
+            if navigationAction.shouldPerformDownload { decisionHandler(.download); return }
+            if isMainFrame { isLoading = false; showActionError = true }
+            decisionHandler(.cancel); return
+        }
+        // mailto:/tel: only from a tap, and only after the student confirms.
+        if WebsiteURLPolicy.contactTarget(url) != nil {
+            if isMainFrame && navigationAction.navigationType == .linkActivated { isLoading = false; externalURL = url }
+            decisionHandler(.cancel); return
+        }
         switch WebsiteURLPolicy.classify(url) {
         case .internalPage:
             if navigationAction.targetFrame?.isMainFrame != false && !navigationAction.shouldPerformDownload { requestedURL = url }
@@ -109,6 +123,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
     }
     func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
         guard navigationAction.targetFrame == nil, let url = navigationAction.request.url else { return nil }
+        if WebsiteURLPolicy.contactTarget(url) != nil { externalURL = url; return nil }
         switch WebsiteURLPolicy.classify(url) {
         case .internalPage: webView.load(navigationAction.request)
         case .externalPage: externalURL = url
@@ -118,13 +133,20 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
     }
     func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
         isLoading = false; download.delegate = self
+        if let url = navigationAction.request.url,
+           WebsiteURLPolicy.classify(url) == .internalPage || WebsiteURLPolicy.isSiteBlob(url) {
+            trustedDownloads.insert(ObjectIdentifier(download))
+        }
     }
     func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
         isLoading = false; download.delegate = self
+        // Response policy only lets internal-page responses become downloads.
+        trustedDownloads.insert(ObjectIdentifier(download))
     }
     func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String, completionHandler: @escaping @MainActor @Sendable (URL?) -> Void) {
-        guard let url = response.url, WebsiteURLPolicy.classify(url) == .internalPage,
-              response.expectedContentLength <= 100 * 1024 * 1024 else {
+        let trusted = trustedDownloads.remove(ObjectIdentifier(download)) != nil
+            || response.url.map { WebsiteURLPolicy.classify($0) == .internalPage } == true
+        guard trusted, response.expectedContentLength <= 100 * 1024 * 1024 else {
             showActionError = true; completionHandler(nil); return
         }
         do {
@@ -150,6 +172,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
         sharedDownload = SharedDownload(url: destination)
     }
     func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
+        trustedDownloads.remove(ObjectIdentifier(download))
         if let destination = destinations.removeValue(forKey: ObjectIdentifier(download)) {
             try? FileManager.default.removeItem(at: destination.deletingLastPathComponent())
         }

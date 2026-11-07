@@ -50,7 +50,7 @@ struct WebsiteView: View {
         .alert(text("فتح رابط خارجي؟", "Open external link?"), isPresented: Binding(get: { browser.externalURL != nil }, set: { if !$0 { browser.externalURL = nil } }), presenting: browser.externalURL) { url in
             Button(text("فتح", "Open")) { browser.confirmExternal(url) }
             Button(text("إلغاء", "Cancel"), role: .cancel) { browser.externalURL = nil }
-        } message: { url in Text(url.host ?? "") }
+        } message: { url in Text(WebsiteURLPolicy.displayTarget(url)) }
         .alert(text("تعذّر إكمال العملية", "Unable to complete action"), isPresented: $browser.showActionError) {
             Button(text("حسناً", "OK"), role: .cancel) {}
             Button(text("فتح في المتصفح", "Open in browser")) { browser.openCurrentInBrowser() }
