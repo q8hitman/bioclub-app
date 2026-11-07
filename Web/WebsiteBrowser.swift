@@ -77,7 +77,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
     }
     func webViewWebContentProcessDidTerminate(_ webView: WKWebView) { isLoading = false; failed = true }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
         guard let url = navigationAction.request.url else { decisionHandler(.cancel); return }
         switch WebsiteURLPolicy.classify(url) {
         case .internalPage:
@@ -95,7 +95,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
             decisionHandler(.cancel)
         }
     }
-    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping @MainActor @Sendable (WKNavigationResponsePolicy) -> Void) {
         guard let url = navigationResponse.response.url else { decisionHandler(.cancel); return }
         if !navigationResponse.isForMainFrame && WebsiteURLPolicy.isAllowedEmbeddedFrame(url) { decisionHandler(.allow); return }
         guard WebsiteURLPolicy.classify(url) == .internalPage else {
@@ -122,7 +122,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
     func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
         isLoading = false; download.delegate = self
     }
-    func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String, completionHandler: @escaping (URL?) -> Void) {
+    func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String, completionHandler: @escaping @MainActor @Sendable (URL?) -> Void) {
         guard let url = response.url, WebsiteURLPolicy.classify(url) == .internalPage,
               response.expectedContentLength <= 100 * 1024 * 1024 else {
             showActionError = true; completionHandler(nil); return
@@ -135,7 +135,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
             completionHandler(destination)
         } catch { showActionError = true; completionHandler(nil) }
     }
-    func download(_ download: WKDownload, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, decisionHandler: @escaping (WKDownload.RedirectPolicy) -> Void) {
+    func download(_ download: WKDownload, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, decisionHandler: @escaping @MainActor @Sendable (WKDownload.RedirectPolicy) -> Void) {
         let allowed = request.url.map { WebsiteURLPolicy.classify($0) == .internalPage } ?? false
         if !allowed { showActionError = true }
         decisionHandler(allowed ? .allow : .cancel)
@@ -159,7 +159,7 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
         if let directory = sharedDirectory { try? FileManager.default.removeItem(at: directory) }
         sharedDirectory = nil
     }
-    func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping (WKPermissionDecision) -> Void) {
+    func webView(_ webView: WKWebView, requestMediaCapturePermissionFor origin: WKSecurityOrigin, initiatedByFrame frame: WKFrameInfo, type: WKMediaCaptureType, decisionHandler: @escaping @MainActor @Sendable (WKPermissionDecision) -> Void) {
         decisionHandler(.deny)
     }
     private func present(_ alert: UIAlertController) -> Bool {
@@ -169,20 +169,20 @@ final class WebsiteBrowser: NSObject, ObservableObject, WKNavigationDelegate, WK
         presenter.present(alert, animated: true)
         return true
     }
-    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+    func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping @MainActor @Sendable () -> Void) {
         guard frame.request.url.map({ WebsiteURLPolicy.classify($0) == .internalPage }) == true else { completionHandler(); return }
         let alert = UIAlertController(title: "BSC KU", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: language == .ar ? "حسناً" : "OK", style: .default) { _ in completionHandler() })
         if !present(alert) { completionHandler() }
     }
-    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+    func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping @MainActor @Sendable (Bool) -> Void) {
         guard frame.request.url.map({ WebsiteURLPolicy.classify($0) == .internalPage }) == true else { completionHandler(false); return }
         let alert = UIAlertController(title: "BSC KU", message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: language == .ar ? "إلغاء" : "Cancel", style: .cancel) { _ in completionHandler(false) })
         alert.addAction(UIAlertAction(title: language == .ar ? "متابعة" : "Continue", style: .default) { _ in completionHandler(true) })
         if !present(alert) { completionHandler(false) }
     }
-    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+    func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping @MainActor @Sendable (String?) -> Void) {
         guard frame.request.url.map({ WebsiteURLPolicy.classify($0) == .internalPage }) == true else { completionHandler(nil); return }
         let alert = UIAlertController(title: "BSC KU", message: prompt, preferredStyle: .alert)
         alert.addTextField { $0.text = defaultText }
