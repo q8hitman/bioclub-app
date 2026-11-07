@@ -15,7 +15,14 @@ public struct WebsiteRoute: Identifiable, Hashable, Codable, Sendable {
         self.id = id; self.path = path; self.titleAR = titleAR; self.titleEN = titleEN
         self.subtitleAR = subtitleAR; self.subtitleEN = subtitleEN; self.symbol = symbol; self.category = category
     }
-    public var url: URL { URL(string: path, relativeTo: URL(string: "https://biosci-ku.com/")!)!.absoluteURL }
+    public var url: URL {
+        let base = URL(string: "https://biosci-ku.com/")!
+        guard let resolved = URL(string: path, relativeTo: base)?.absoluteURL,
+              resolved.scheme == "https", resolved.host == "biosci-ku.com",
+              resolved.user == nil, resolved.password == nil,
+              resolved.port == nil || resolved.port == 443 else { return base }
+        return resolved
+    }
     public func title(_ language: AppLanguage) -> String { language == .ar ? titleAR : titleEN }
     public func subtitle(_ language: AppLanguage) -> String { language == .ar ? subtitleAR : subtitleEN }
 }

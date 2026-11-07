@@ -10,7 +10,11 @@ struct CatalogView: View {
             .listStyle(.insetGrouped)
             .overlay {
                 if routes.isEmpty {
-                    ContentUnavailableView.search(text: query)
+                    if query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                        ContentUnavailableView(store.text("لا توجد موارد متاحة حالياً", "No resources available yet"), systemImage: "tray")
+                    } else {
+                        ContentUnavailableView.search(text: query)
+                    }
                 }
             }
             .searchable(text: $query, prompt: store.text("ابحث في هذا القسم", "Search this section"))

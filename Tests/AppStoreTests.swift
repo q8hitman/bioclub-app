@@ -51,4 +51,10 @@ final class AppStoreTests: XCTestCase {
             XCTAssertFalse(route.titleEN.isEmpty)
         }
     }
+    func testRouteURLCannotEscapeOfficialOrigin() {
+        for path in ["https://evil.example/", "javascript:alert(1)", "//evil.example/", "https://biosci-ku.com.evil.example/", "https://user@biosci-ku.com/", "http://biosci-ku.com/"] {
+            let route = WebsiteRoute(id: "test", path: path, titleAR: "اختبار", titleEN: "Test", subtitleAR: "", subtitleEN: "", symbol: "leaf", category: .study)
+            XCTAssertEqual(route.url.absoluteString, "https://biosci-ku.com/")
+        }
+    }
 }

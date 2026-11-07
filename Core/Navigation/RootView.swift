@@ -7,9 +7,13 @@ enum AppSection: String, CaseIterable, Identifiable {
         switch self { case .home: "house"; case .study: "books.vertical"; case .services: "square.grid.2x2"; case .activities: "calendar"; case .more: "ellipsis.circle" }
     }
     func title(_ language: AppLanguage) -> String {
-        let ar = ["الرئيسية", "الدراسة", "الخدمات", "الأنشطة", "المزيد"]
-        let en = ["Home", "Study", "Services", "Activities", "More"]
-        return (language == .ar ? ar : en)[Self.allCases.firstIndex(of: self)!]
+        switch self {
+        case .home: language == .ar ? "الرئيسية" : "Home"
+        case .study: language == .ar ? "الدراسة" : "Study"
+        case .services: language == .ar ? "الخدمات" : "Services"
+        case .activities: language == .ar ? "الأنشطة" : "Activities"
+        case .more: language == .ar ? "المزيد" : "More"
+        }
     }
 }
 
@@ -17,9 +21,10 @@ struct RootView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var selection: AppSection? = .home
+    @State private var columnVisibility: NavigationSplitViewVisibility = .all
     var body: some View {
         if sizeClass == .regular {
-            NavigationSplitView {
+            NavigationSplitView(columnVisibility: $columnVisibility) {
                 List(AppSection.allCases, selection: $selection) { section in
                     Label(section.title(store.language), systemImage: section.symbol).tag(section)
                 }.navigationTitle("BSC KU")

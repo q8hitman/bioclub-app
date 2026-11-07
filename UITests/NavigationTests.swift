@@ -1,8 +1,10 @@
 import XCTest
 
 final class NavigationTests: XCTestCase {
+    @MainActor
     func testLaunchAndNativeNavigation() {
         let app = XCUIApplication()
+        app.launchArguments = ["--uitesting"]
         app.launch()
         XCTAssertTrue(app.staticTexts["BSC KU"].firstMatch.waitForExistence(timeout: 10))
         let more = app.tabBars.buttons["المزيد"]
