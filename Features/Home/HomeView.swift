@@ -16,7 +16,7 @@ struct HomeView: View {
                             .font(.subheadline)
                     }
                     .foregroundStyle(.white).padding(.vertical, 20)
-                    .listRowBackground(BSCStyle.green)
+                    .listRowBackground(BSCStyle.accent)
                 }
                 Section(store.text("ابدأ من هنا", "Start here")) {
                     RouteRows(routes: Array(WebsiteCatalog.routes.filter { $0.category == .study || $0.category == .services }.prefix(4)))
@@ -40,3 +40,4 @@ struct HomeView: View {
         }
     }
 }
+

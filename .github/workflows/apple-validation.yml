@@ -1,0 +1,30 @@
+name: Apple validation
+on:
+  push:
+    branches: [codex/ios-app, claude/web-integration]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  ios-tests:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate project structure
+        run: python3 scripts/validate_project.py
+      - name: Select available iPhone simulator
+        run: |
+          xcrun simctl list devices available --json > /tmp/bsc-devices.json
+          python3 - <<'PY' >> "$GITHUB_ENV"
+          import json
+          data = json.load(open('/tmp/bsc-devices.json'))
+          devices = [d for runtime, items in data['devices'].items() if 'iOS' in runtime for d in items if d['name'].startswith('iPhone') and d.get('isAvailable')]
+          assert devices, 'No available iPhone simulator'
+          print('BSC_SIMULATOR=' + devices[0]['udid'])
+          PY
+      - name: Build and execute unit and UI tests
+        run: xcodebuild -project BSCKU.xcodeproj -scheme BSCKU -destination "platform=iOS Simulator,id=$BSC_SIMULATOR" -resultBundlePath TestResults.xcresult test CODE_SIGNING_ALLOWED=NO
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Apple-test-results
+          path: TestResults.xcresult

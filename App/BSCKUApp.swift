@@ -9,7 +9,8 @@ struct BSCKUApp: App {
                 .environment(store)
                 .environment(\.locale, Locale(identifier: store.language.rawValue))
                 .environment(\.layoutDirection, store.language == .ar ? .rightToLeft : .leftToRight)
-                .tint(BSCStyle.green)
+                .tint(BSCStyle.accent)
         }
     }
 }
+

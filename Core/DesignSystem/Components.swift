@@ -1,7 +1,7 @@
 import SwiftUI
 
 enum BSCStyle {
-    static let green = Color(red: 0.12, green: 0.48, blue: 0.36)
+    static let accent = Color(red: 0.388, green: 0.400, blue: 0.945)
     static let spacing: CGFloat = 16
 }
 
@@ -11,9 +11,9 @@ struct RouteCard: View {
     var body: some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: route.symbol)
-                .font(.title2).foregroundStyle(BSCStyle.green)
+                .font(.title2).foregroundStyle(BSCStyle.accent)
                 .frame(width: 44, height: 44)
-                .background(BSCStyle.green.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                .background(BSCStyle.accent.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 5) {
                 Text(route.title(store.language)).font(.headline).foregroundStyle(.primary)
@@ -65,3 +65,4 @@ struct RouteRows: View {
         }
     }
 }
+

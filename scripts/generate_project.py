@@ -52,7 +52,7 @@ for name, folders, product_type, extension in [
     else:
         proxy = add(name + 'proxy', f'isa = PBXContainerItemProxy; containerPortal = {uid("project")}; proxyType = 1; remoteGlobalIDString = {app_id}; remoteInfo = BSCKU;')
         deps.append(add(name + 'dependency', f'isa = PBXTargetDependency; target = {app_id}; targetProxy = {proxy};'))
-        if name == 'BSCKUTests': base.update({'TEST_HOST': '$(BUILT_PRODUCTS_DIR)/BSCKU.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/BSCKU', 'BUNDLE_LOADER': '$(TEST_HOST)'})
+        if name == 'BSCKUTests': base.update({'TEST_HOST': '$(BUILT_PRODUCTS_DIR)/BSCKU.app/BSCKU', 'BUNDLE_LOADER': '$(TEST_HOST)'})
         else: base['TEST_TARGET_NAME'] = 'BSCKU'
     conf = configs(name, base)
     targets.append(add('target' + name, f'isa = PBXNativeTarget; buildConfigurationList = {conf}; buildPhases = {array([source, resources])}; buildRules = (); dependencies = {array(deps)}; name = {name}; productName = {name}; productReference = {product}; productType = {q("com.apple.product-type." + product_type)};'))
