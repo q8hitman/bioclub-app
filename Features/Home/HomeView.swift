@@ -19,7 +19,8 @@ struct HomeView: View {
                     .listRowBackground(BSCStyle.hero)
                 }
                 Section(store.text("ابدأ من هنا", "Start here")) {
-                    RouteRows(routes: Array(WebsiteCatalog.routes.filter { $0.category == .study || $0.category == .services }.prefix(4)))
+                    RouteRows(routes: Array(WebsiteCatalog.routes.filter { $0.category == .study }.prefix(2))
+                        + Array(WebsiteCatalog.routes.filter { $0.category == .services }.prefix(2)))
                 }
                 if !recent.isEmpty {
                     Section(store.text("شوهد مؤخراً", "Recently viewed")) { RouteRows(routes: Array(recent.prefix(5))) }

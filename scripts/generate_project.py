@@ -42,6 +42,13 @@ for name, folders, product_type, extension in [
             ref = add('file' + rel, f'isa = PBXFileReference; lastKnownFileType = text.xml; path = {q(rel)}; sourceTree = "<group>";')
             files.append(ref)
             resource_builds.append(add('build' + rel, f'isa = PBXBuildFile; fileRef = {ref};'))
+        translations = []
+        for language in ['ar', 'en']:
+            rel = f'Localization/{language}.lproj/InfoPlist.strings'
+            translations.append(add('file' + rel, f'isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = {language}; path = {q(rel)}; sourceTree = "<group>";'))
+        variant = add('InfoPlistTranslations', f'isa = PBXVariantGroup; children = {array(translations)}; name = InfoPlist.strings; sourceTree = "<group>";')
+        files.append(variant)
+        resource_builds.append(add('buildInfoPlistTranslations', f'isa = PBXBuildFile; fileRef = {variant};'))
     resources = add(name + 'resources', f'isa = PBXResourcesBuildPhase; buildActionMask = 2147483647; files = {array(resource_builds)}; runOnlyForDeploymentPostprocessing = 0;')
     product = add(name + 'product', f'isa = PBXFileReference; explicitFileType = {q("wrapper.application" if extension == "app" else "wrapper.cfbundle")}; path = {q(name + "." + extension)}; sourceTree = BUILT_PRODUCTS_DIR;')
     products.append(product)
