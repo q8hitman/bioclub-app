@@ -9,7 +9,11 @@ struct HomeView: View {
             if query.isEmpty {
                 Section {
                     VStack(alignment: .leading, spacing: 12) {
-                        Label("BSC KU", systemImage: "leaf.fill").font(.headline)
+                        HStack(spacing: 16) {
+                            Image("ClubLogo").resizable().scaledToFit()
+                                .frame(width: 86, height: 72).accessibilityHidden(true)
+                            Text("BSC KU").font(.headline)
+                        }
                         Text(store.text("نادي العلوم البيولوجية", "Biological Sciences Club"))
                             .font(.largeTitle.bold()).fixedSize(horizontal: false, vertical: true)
                         Text(store.text("جامعة الكويت · مساحة للتعلّم والاكتشاف", "Kuwait University · Learn and discover"))

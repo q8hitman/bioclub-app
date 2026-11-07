@@ -6,7 +6,7 @@ On compact layouts, each tab owns its NavigationStack. On regular layouts, a Nav
 
 Arabic is the initial language; explicit English selection persists. The app sets both SwiftUI locale and layout direction. System fonts and semantic text styles support Dynamic Type, with multiline card text and no fixed text heights. Standard List/NavigationLink/Button controls provide accessibility semantics. VoiceOver and the largest text sizes still require device review.
 
-Brand evidence: the official homepage source inspected on 2026-11-07 defines theme color and --ink as #6366f1, with violet, green, cyan and gold secondary accents. The native accent follows that indigo. The hero uses a darker indigo for white text contrast. System grouped backgrounds adapt to light and dark appearance. No unapproved logo artwork is included; an SF Symbol leaf provides a temporary visual mark.
+Brand evidence: the official homepage source inspected on 2026-11-07 defines theme color and --ink as #6366f1, with violet, green, cyan and gold secondary accents. The native accent follows that indigo. The hero uses a darker indigo for white text contrast. System grouped backgrounds adapt to light and dark appearance. The home header includes the original, unmodified 550×453 PNG from https://biosci-ku.com/logo.png, matching the official homepage image. A separate approved square App Store icon is still required.
 
 Content search intentionally searches the route catalog in both languages. Full-text academic resources remain searchable within the website. No native event feed, course database, membership backend or AI endpoint is invented.
 

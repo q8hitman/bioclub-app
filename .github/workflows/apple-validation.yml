@@ -33,8 +33,14 @@ jobs:
           PY
       - name: Build and execute unit and UI tests
         run: xcodebuild -project BSCKU.xcodeproj -scheme BSCKU -destination "platform=iOS Simulator,id=$BSC_SIMULATOR" -resultBundlePath TestResults.xcresult test CODE_SIGNING_ALLOWED=NO
+      - name: Export UI evidence
+        if: always()
+        continue-on-error: true
+        run: xcrun xcresulttool export attachments --path TestResults.xcresult --output-path TestAttachments
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: Apple-test-results-${{ matrix.device }}
-          path: TestResults.xcresult
+          path: |
+            TestResults.xcresult
+            TestAttachments

@@ -38,8 +38,9 @@ for name, folders, product_type, extension in [
     source = add(name + 'sources', f'isa = PBXSourcesBuildPhase; buildActionMask = 2147483647; files = {array(builds)}; runOnlyForDeploymentPostprocessing = 0;')
     resource_builds = []
     if name == 'BSCKU':
-        for rel in ['App/PrivacyInfo.xcprivacy']:
-            ref = add('file' + rel, f'isa = PBXFileReference; lastKnownFileType = text.xml; path = {q(rel)}; sourceTree = "<group>";')
+        for rel in ['App/PrivacyInfo.xcprivacy', 'App/Assets.xcassets']:
+            file_type = 'folder.assetcatalog' if rel.endswith('.xcassets') else 'text.xml'
+            ref = add('file' + rel, f'isa = PBXFileReference; lastKnownFileType = {file_type}; path = {q(rel)}; sourceTree = "<group>";')
             files.append(ref)
             resource_builds.append(add('build' + rel, f'isa = PBXBuildFile; fileRef = {ref};'))
         translations = []
