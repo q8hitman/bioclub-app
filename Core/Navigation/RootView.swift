@@ -21,6 +21,7 @@ struct RootView: View {
     @Environment(AppStore.self) private var store
     @Environment(\.horizontalSizeClass) private var sizeClass
     @State private var selection: AppSection? = .home
+    @State private var compactSelection: AppSection = .home
     @State private var columnVisibility: NavigationSplitViewVisibility = .all
     var body: some View {
         if sizeClass == .regular {
@@ -28,12 +29,14 @@ struct RootView: View {
                 List(AppSection.allCases, selection: $selection) { section in
                     Label(section.title(store.language), systemImage: section.symbol).tag(section)
                 }.navigationTitle("BSC KU")
-            } detail: { sectionStack(selection ?? .home).id(selection) }
+            } detail: { sectionStack(selection ?? .home).id("\(selection?.rawValue ?? "home")-\(store.language.rawValue)") }
         } else {
-            TabView {
+            TabView(selection: $compactSelection) {
                 ForEach(AppSection.allCases) { section in
                     sectionStack(section)
+                        .id("\(section.rawValue)-\(store.language.rawValue)")
                         .tabItem { Label(section.title(store.language), systemImage: section.symbol) }
+                        .tag(section)
                 }
             }
         }

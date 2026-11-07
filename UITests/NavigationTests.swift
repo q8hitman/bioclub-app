@@ -15,6 +15,13 @@ final class NavigationTests: XCTestCase {
         app.buttons["languagePicker"].tap()
         app.buttons["English"].tap()
         XCTAssertTrue(app.staticTexts["Favorites"].firstMatch.waitForExistence(timeout: 5))
+        // Rebuilt native containers must use LTR geometry after the RTL-to-LTR switch.
+        let favorites = app.staticTexts["Favorites"].firstMatch
+        if app.tabBars.firstMatch.exists {
+            let leftAligned = NSPredicate(format: "frame.origin.x < %f", app.frame.midX)
+            expectation(for: leftAligned, evaluatedWith: favorites)
+            waitForExpectations(timeout: 10)
+        }
         capture("English more", app: app)
         XCUIDevice.shared.orientation = .landscapeLeft
         XCTAssertTrue(app.staticTexts["Favorites"].firstMatch.waitForExistence(timeout: 5))

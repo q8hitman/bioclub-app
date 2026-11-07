@@ -11,6 +11,7 @@ concurrency:
 jobs:
   ios-tests:
     runs-on: macos-latest
+    timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
@@ -31,8 +32,12 @@ jobs:
           assert devices, 'No available simulator'
           print('BSC_SIMULATOR=' + devices[0]['udid'])
           PY
+      - name: Prepare simulator
+        run: |
+          xcrun simctl boot "$BSC_SIMULATOR" || true
+          xcrun simctl bootstatus "$BSC_SIMULATOR" -b
       - name: Build and execute unit and UI tests
-        run: xcodebuild -project BSCKU.xcodeproj -scheme BSCKU -destination "platform=iOS Simulator,id=$BSC_SIMULATOR" -resultBundlePath TestResults.xcresult test CODE_SIGNING_ALLOWED=NO
+        run: xcodebuild -project BSCKU.xcodeproj -scheme BSCKU -destination "platform=iOS Simulator,id=$BSC_SIMULATOR" -parallel-testing-enabled NO -resultBundlePath TestResults.xcresult test CODE_SIGNING_ALLOWED=NO
       - name: Export UI evidence
         if: always()
         continue-on-error: true

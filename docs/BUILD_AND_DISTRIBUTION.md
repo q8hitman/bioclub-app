@@ -1,7 +1,7 @@
 # Build and distribution
 
 ## On a Mac
-1. Install Xcode 16 or later with an iOS simulator runtime (deployment target iOS 17).
+1. Use Xcode 26.6, the toolchain exercised by this delivery's macOS CI, with an installed iOS simulator runtime (deployment target remains iOS 17). Older Xcode releases have not been validated against the WebKit concurrency annotations.
 2. Open `BSCKU.xcodeproj`. Select the shared `BSCKU` scheme and an installed iPhone or iPad simulator.
 3. Run Product → Build, then Product → Test. No package manager or external dependency is required.
 4. For device builds, set your Apple development team and a registered bundle identifier in target settings. Do not put signing credentials in the repository.
