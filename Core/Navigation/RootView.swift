@@ -28,8 +28,11 @@ struct RootView: View {
             NavigationSplitView(columnVisibility: $columnVisibility) {
                 List(AppSection.allCases, selection: $selection) { section in
                     Label(section.title(store.language), systemImage: section.symbol).tag(section)
-                }.navigationTitle("BSC KU")
+                }
+                .id(store.language)
+                .navigationTitle("BSC KU")
             } detail: { sectionStack(selection ?? .home).id("\(selection?.rawValue ?? "home")-\(store.language.rawValue)") }
+            .id(store.language)
         } else {
             TabView(selection: $compactSelection) {
                 ForEach(AppSection.allCases) { section in

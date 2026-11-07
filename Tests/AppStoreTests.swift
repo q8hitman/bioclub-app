@@ -1,4 +1,5 @@
 import XCTest
+import UIKit
 @testable import BSCKU
 
 @MainActor
@@ -49,6 +50,7 @@ final class AppStoreTests: XCTestCase {
             XCTAssertNil(route.url.user)
             XCTAssertFalse(route.titleAR.isEmpty)
             XCTAssertFalse(route.titleEN.isEmpty)
+            XCTAssertNotNil(UIImage(systemName: route.symbol), "Missing SF Symbol: \(route.symbol)")
         }
     }
     func testRouteURLCannotEscapeOfficialOrigin() {
