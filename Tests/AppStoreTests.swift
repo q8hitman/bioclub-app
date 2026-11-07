@@ -39,4 +39,16 @@ final class AppStoreTests: XCTestCase {
             XCTAssertTrue(store.matching(WebsiteCatalog.routes, query: route.titleEN).contains(route))
         }
     }
+    func testCatalogIdentifiersAndURLs() {
+        let routes = WebsiteCatalog.routes
+        XCTAssertFalse(routes.isEmpty)
+        XCTAssertEqual(Set(routes.map(\.id)).count, routes.count)
+        for route in routes {
+            XCTAssertEqual(route.url.scheme, "https")
+            XCTAssertEqual(route.url.host, "biosci-ku.com")
+            XCTAssertNil(route.url.user)
+            XCTAssertFalse(route.titleAR.isEmpty)
+            XCTAssertFalse(route.titleEN.isEmpty)
+        }
+    }
 }

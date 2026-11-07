@@ -2,6 +2,7 @@ import SwiftUI
 
 enum BSCStyle {
     static let accent = Color(red: 0.388, green: 0.400, blue: 0.945)
+    static let hero = Color(red: 0.322, green: 0.329, blue: 0.800)
     static let spacing: CGFloat = 16
 }
 
@@ -65,4 +66,3 @@ struct RouteRows: View {
         }
     }
 }
-

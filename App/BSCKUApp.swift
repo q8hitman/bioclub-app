@@ -13,4 +13,3 @@ struct BSCKUApp: App {
         }
     }
 }
-
