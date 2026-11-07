@@ -22,6 +22,8 @@ struct MoreView: View {
                     Text("العربية").tag(AppLanguage.ar)
                     Text("English").tag(AppLanguage.en)
                 }
+                .pickerStyle(.menu)
+                .accessibilityIdentifier("languagePicker")
                 Button(store.text("مسح سجل المشاهدة", "Clear viewing history"), role: .destructive) { confirmClear = true }
                     .disabled(store.recentIDs.isEmpty)
             }

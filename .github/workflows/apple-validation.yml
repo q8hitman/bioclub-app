@@ -1,24 +1,34 @@
 name: Apple validation
 on:
-  push:
-    branches: [codex/ios-app, claude/web-integration]
   pull_request:
+    paths-ignore: ['docs/**', 'README.md', 'Localization/README.md']
   workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: apple-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   ios-tests:
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [iPhone, iPad]
     steps:
       - uses: actions/checkout@v4
       - name: Validate project structure
         run: python3 scripts/validate_project.py
-      - name: Select available iPhone simulator
+      - name: Select available simulator
+        env:
+          BSC_DEVICE_KIND: ${{ matrix.device }}
         run: |
           xcrun simctl list devices available --json > /tmp/bsc-devices.json
           python3 - <<'PY' >> "$GITHUB_ENV"
-          import json
+          import json, os
           data = json.load(open('/tmp/bsc-devices.json'))
-          devices = [d for runtime, items in data['devices'].items() if 'iOS' in runtime for d in items if d['name'].startswith('iPhone') and d.get('isAvailable')]
-          assert devices, 'No available iPhone simulator'
+          devices = [d for runtime, items in data['devices'].items() if 'iOS' in runtime for d in items if d['name'].startswith(os.environ['BSC_DEVICE_KIND']) and d.get('isAvailable')]
+          assert devices, 'No available simulator'
           print('BSC_SIMULATOR=' + devices[0]['udid'])
           PY
       - name: Build and execute unit and UI tests
@@ -26,5 +36,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: Apple-test-results
+          name: Apple-test-results-${{ matrix.device }}
           path: TestResults.xcresult
